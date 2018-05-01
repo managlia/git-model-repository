@@ -14,12 +14,13 @@ import org.springframework.web.bind.annotation.CrossOrigin;
 import com.yeti.model.action.Action;
 import com.yeti.model.campaign.Campaign;
 import com.yeti.model.contact.Contact;
+import com.yeti.model.contact.Team;
 
 @CrossOrigin
 @RepositoryRestResource(collectionResourceRel = "Contact", path = "Contacts")
 public interface ContactRepository extends JpaRepository<Contact, Integer> {  //Entity, Id
 
-	public List<Contact> findByCompanyId(int companyId); 
+	public List<Contact> findByCompanyId(Integer companyId); 
 
     @Async
 	@Query("SELECT c FROM Contact c WHERE ("
@@ -27,9 +28,20 @@ public interface ContactRepository extends JpaRepository<Contact, Integer> {  //
 			+ "LOWER(c.lastName) LIKE %:searchTerm% OR "
 			+ "LOWER(c.description) LIKE %:searchTerm%)")
 	public Future<List<Contact>> searchContactsByTerm(@Param("searchTerm") String searchTerm);
-	
-	public List<Contact> findDistinctByActionsIn(Set<Action> actions);
+
+    @Async
+	@Query("SELECT c FROM Contact c WHERE c.companyId = :companyId AND ("
+			+ "LOWER(c.firstName) LIKE %:searchTerm% OR "
+			+ "LOWER(c.lastName) LIKE %:searchTerm% OR "
+			+ "LOWER(c.description) LIKE %:searchTerm%)")
+	public Future<List<Contact>> searchContactsByTermAndHost(
+			@Param("searchTerm") String searchTerm,
+			@Param("companyId") Integer companyId
+			);
+    
+    public List<Contact> findDistinctByActionsIn(Set<Action> actions);
 	
 	public List<Contact> findDistinctByCampaignsIn(Set<Campaign> campaigns);
 
+	public List<Contact> findDistinctByTeamsIn(Set<Team> campaigns);
 }
